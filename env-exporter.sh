@@ -120,18 +120,17 @@ main() {
   envfile=$(snapctl get envfile)
   handle_envfile $envfile
 
-  debug "Checking for GLOBAL env variables..."
-  json_str=$(snapctl get env)
-  handle_envs $json_str
-
   debug "Checking for LOCAL envfile..."
   envfile=$(snapctl get apps.$app.envfile)
   handle_envfile $envfile
 
+  debug "Checking for GLOBAL env variables..."
+  json_str=$(snapctl get env)
+  handle_envs $json_str
+
   debug "Checking for LOCAL env variables..."
   json_str=$(snapctl get apps.$app.env)
   handle_envs $json_str
-
 }
 
 main $1
