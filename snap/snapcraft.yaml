@@ -1,0 +1,79 @@
+name: envtester
+base: core24
+version: 'demo'
+summary: Demonstration of env-exporter program
+description: |
+  envtester is a demo snap to show the env-exporter program usecases
+
+grade: stable
+confinement: strict
+
+apps:
+  # App using bash implementation
+  app1:
+    environment:
+     app_alias: app1
+    command-chain:
+      - bin/env-exporter.sh
+    command: bin/env.sh
+
+  # App using bash implementation - with app alias
+  app2:
+    environment:
+     app_alias: myapp2
+    command-chain:
+      - bin/env-exporter.sh
+    command: bin/env.sh
+
+  # App using Rust implementation
+  app3:
+    environment:
+     app_alias: app1
+    command-chain:
+      - bin/env-exporter
+    command: bin/env.sh
+
+  # App using Rust implementation - with app alias
+  app4:
+    environment:
+     app_alias: myapp4
+    command-chain:
+      - bin/env-exporter
+    command: bin/env.sh
+  
+  # App without using env exporter for benchmarking purposes
+  app0:
+    command: bin/env.sh
+
+parts:
+  myapp:
+    plugin: dump
+    source: snap/local
+
+  env-exporter-bash:
+    plugin: dump
+    source: env-exporter.sh
+    source-type: file
+    organize:
+      env-exporter.sh: bin/env-exporter.sh
+
+  env-exporter-rust:
+    plugin: nil
+    source: .
+    build-snaps: 
+      - rustup
+    build-packages:
+      - upx-ucl # for binary compression
+    override-build: |
+      rustup default stable
+
+      TARGET=x86_64-unknown-linux-gnu
+
+      rustup target add $TARGET
+      cargo build --target $TARGET --release
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      
+      # compress the binary
+      upx --best --lzma target/$TARGET/release/env-exporter
+      cp target/$TARGET/release/env-exporter $SNAPCRAFT_PART_INSTALL/bin
+    
