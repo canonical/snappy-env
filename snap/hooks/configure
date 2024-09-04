@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Do nothing
+# This is only to allow setting snap configuration options from outside

@@ -1,48 +1,31 @@
 name: envtester
 base: core24
 version: 'demo'
-summary: Demonstration of env-exporter program
-description: |
-  envtester is a demo snap to show the env-exporter program usecases
+summary: Demonstration of snappy-env program
+description: A demo snap to test the usage of snappy-env
 
 grade: stable
 confinement: strict
 
 apps:
   # App using bash implementation
-  app1:
+  app-bash:
     environment:
-     app_alias: app1
-    command-chain:
-      - bin/env-exporter.sh
-    command: bin/env.sh
-
-  # App using bash implementation - with app alias
-  app2:
-    environment:
-     app_alias: myapp2
+     env_alias: app-bash
     command-chain:
       - bin/env-exporter.sh
     command: bin/env.sh
 
   # App using Rust implementation
-  app3:
+  app-rust:
     environment:
-     app_alias: app1
-    command-chain:
-      - bin/env-exporter
-    command: bin/env.sh
-
-  # App using Rust implementation - with app alias
-  app4:
-    environment:
-     app_alias: myapp4
+     env_alias: app-rust
     command-chain:
       - bin/env-exporter
     command: bin/env.sh
   
-  # App without using env exporter for benchmarking purposes
-  app0:
+  # App without using snappy-env, for benchmarking purposes
+  app:
     command: bin/env.sh
 
 parts:
