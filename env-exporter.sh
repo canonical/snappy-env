@@ -109,8 +109,8 @@ main() {
   debug "debug : $debug"
 
   local app
-  if [ -n $app_alias ]; then
-    app=$app_alias
+  if [ -n $env_alias ]; then
+    app=$env_alias
   else
     app=$(basename $1) || exit 0
   fi
