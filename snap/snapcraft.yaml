@@ -1,0 +1,62 @@
+name: envtester
+base: core24
+version: 'demo'
+summary: Demonstration of snappy-env program
+description: A demo snap to test the usage of snappy-env
+
+grade: stable
+confinement: strict
+
+apps:
+  # App using bash implementation
+  app-bash:
+    environment:
+     env_alias: app-bash
+    command-chain:
+      - bin/env-exporter.sh
+    command: bin/env.sh
+
+  # App using Rust implementation
+  app-rust:
+    environment:
+     env_alias: app-rust
+    command-chain:
+      - bin/env-exporter
+    command: bin/env.sh
+  
+  # App without using snappy-env, for benchmarking purposes
+  app:
+    command: bin/env.sh
+
+parts:
+  myapp:
+    plugin: dump
+    source: snap/local
+
+  env-exporter-bash:
+    plugin: dump
+    source: env-exporter.sh
+    source-type: file
+    organize:
+      env-exporter.sh: bin/env-exporter.sh
+
+  env-exporter-rust:
+    plugin: nil
+    source: .
+    build-snaps: 
+      - rustup
+    build-packages:
+      - upx-ucl # for binary compression
+    override-build: |
+      rustup default stable
+
+      TARGET=x86_64-unknown-linux-gnu
+
+      rustup target add $TARGET
+      cargo build --target $TARGET --release
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      
+      # compress the binary
+      upx --best --lzma target/$TARGET/release/env-exporter
+      cp target/$TARGET/release/env-exporter $SNAPCRAFT_PART_INSTALL/bin
+    
