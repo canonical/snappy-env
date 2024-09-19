@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -eu
 
 BASEDIR=$(dirname "$(realpath "$0")")
 
@@ -67,7 +67,7 @@ echo "Check that the exec-env script is present"
 
 snap install "${SNAP}".snap --dangerous
 
-echo "[envtester] Creating global envfile"
+echo -e "\n[envtester] Creating global envfile"
 echo 'HELLO_WORLD="Hello World"' >>/var/snap/"${SNAP}"/common/global.env
 
 echo "Load global envfile"
@@ -77,7 +77,7 @@ echo "[TEST] - Check if the global envfile is loaded the app using Rust and bash
 assert_env "${SNAP}.app-rust" "HELLO_WORLD" "Hello World" || fail
 assert_env "${SNAP}.app-bash" "HELLO_WORLD" "Hello World" || fail
 
-echo "[envtester] Creating app-specific envfile"
+echo -e "\n[envtester] Creating app-specific envfile"
 echo 'SCOPED=RustVersion' >>/var/snap/"${SNAP}"/common/rust.env
 echo 'SCOPED=BashVersion' >>/var/snap/"${SNAP}"/common/bash.env
 
@@ -89,7 +89,7 @@ echo "[TEST] - Check if the app-specific envfile is loaded for the apps"
 assert_env "${SNAP}.app-rust" "SCOPED" "RustVersion" || fail
 assert_env "${SNAP}.app-bash" "SCOPED" "BashVersion" || fail
 
-echo "[envtester] Setting global env variable"
+echo -e "\n[envtester] Setting global env variable"
 
 echo "Set env vars: Global"
 snap set "${SNAP}" env.global="World"
@@ -98,7 +98,7 @@ echo "[TEST] - Check if the global env var is set for all apps"
 assert_env "${SNAP}.app-rust" "GLOBAL" "World" || fail
 assert_env "${SNAP}.app-bash" "GLOBAL" "World" || fail
 
-echo "[envtester] Setting app-specific env variable"
+echo -e "\n[envtester] Setting app-specific env variable"
 echo "Set env vars: specific to each app"
 snap set "${SNAP}" apps.app-rust.env.hello="Hello"
 snap set "${SNAP}" apps.app-bash.env.specific="City"
@@ -106,25 +106,25 @@ snap set "${SNAP}" apps.app-bash.env.specific="City"
 echo "[TEST] - Check if the app-specific env var IS SET for the app 'app-rust'"
 assert_env "${SNAP}.app-rust" "HELLO" "Hello" || fail
 
-echo "[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-bash'"
+echo -e "\n[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-bash'"
 ! assert_env "${SNAP}.app-bash" "HELLO" "Hello" || fail
 
-echo "[TEST] - Check if the app-specific env var IS SET for the app 'app-bash'"
+echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app-bash'"
 assert_env "${SNAP}.app-bash" "SPECIFIC" "City" || fail
 
-echo "[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
+echo -e "\n[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
 ! assert_env "${SNAP}.app-rust" "SPECIFIC" "City" || fail
 
+echo -e "\n[envtester] Testing options syntax"
 snap set "${SNAP}" env.word.dot="wrong"
 echo "[TEST] [WARN EXPECTED] - Check if the key with dot was ignored"
 ! assert_env "${SNAP}.app-rust" "" "wrong" || fail
 
-echo "[envtester] Testing order of env vars"
+echo -e "\n[envtester] Testing order of env vars"
 echo 'ORDER="From envfile"' >>/var/snap/"${SNAP}"/common/local.env
 snap set "${SNAP}" apps.app-rust.env.order="from app-specific"
 snap set "${SNAP}" apps.app-rust.envfile=/var/snap/"${SNAP}"/common/local.env
 echo "[TEST] - Check if local overrites global"
-
 assert_env "${SNAP}.app-rust" "ORDER" "from app-specific" || fail
 
 teardown
