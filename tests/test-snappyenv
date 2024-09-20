@@ -57,7 +57,7 @@ pushd "$PROJECT_ROOT" || exit 1
 
 SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft -o "${SNAP}".snap
 
-unsquashfs "$PROJECT_ROOT/${SNAP}.snap"
+unsquashfs -f "$PROJECT_ROOT/${SNAP}.snap"
 
 echo "Check that the env-exporter program is present"
 [ -f squashfs-root/bin/env-exporter ] || fail
