@@ -38,6 +38,7 @@ check_root() {
 teardown() {
   echo "Cleaning and exit..."
   snap remove --purge "${SNAP}"
+  git restore snap/snapcraft.yaml
 
   rm -rf squashfs-root
 }
@@ -55,7 +56,19 @@ echo "SNAP NAME: ${SNAP}"
 
 pushd "$PROJECT_ROOT" || exit 1
 
-SNAPCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=1 snapcraft -o "${SNAP}".snap
+# 'sudo -u "$RUN_AS"' prevents a permission denied error when using yq as snap.
+RUN_AS="${SUDO_USER:-$LOGNAME}"
+sudo -u "$RUN_AS" yq '.apps.app-rust-2 = {
+  "environment": {
+    "env_alias": "app-rust-2"
+  },
+  "command-chain": [
+    "bin/env-exporter"
+  ],
+  "command": "bin/env.sh"
+}' -i "snap/snapcraft.yaml"
+
+snapcraft -o "${SNAP}".snap
 
 unsquashfs -f "$PROJECT_ROOT/${SNAP}.snap"
 
@@ -73,21 +86,21 @@ echo 'HELLO_WORLD="Hello World"' >>/var/snap/"${SNAP}"/common/global.env
 echo "Load global envfile"
 snap set "${SNAP}" envfile=/var/snap/"${SNAP}"/common/global.env
 
-echo "[TEST] - Check if the global envfile is loaded the app using Rust and bash snappy-env programs"
+echo "[TEST] - Check if the global envfile is loaded the app using Rust snappy-env programs"
 assert_env "${SNAP}.app-rust" "HELLO_WORLD" "Hello World" || fail
-assert_env "${SNAP}.app-bash" "HELLO_WORLD" "Hello World" || fail
+assert_env "${SNAP}.app-rust-2" "HELLO_WORLD" "Hello World" || fail
 
 echo -e "\n[envtester] Creating app-specific envfile"
 echo 'SCOPED=RustVersion' >>/var/snap/"${SNAP}"/common/rust.env
-echo 'SCOPED=BashVersion' >>/var/snap/"${SNAP}"/common/bash.env
+echo 'SCOPED=Rust2Version' >>/var/snap/"${SNAP}"/common/rust-2.env
 
 echo "Load app-specific envfile"
 snap set "${SNAP}" apps.app-rust.envfile=/var/snap/"${SNAP}"/common/rust.env
-snap set "${SNAP}" apps.app-bash.envfile=/var/snap/"${SNAP}"/common/bash.env
+snap set "${SNAP}" apps.app-rust-2.envfile=/var/snap/"${SNAP}"/common/rust-2.env
 
 echo "[TEST] - Check if the app-specific envfile is loaded for the apps"
 assert_env "${SNAP}.app-rust" "SCOPED" "RustVersion" || fail
-assert_env "${SNAP}.app-bash" "SCOPED" "BashVersion" || fail
+assert_env "${SNAP}.app-rust-2" "SCOPED" "Rust2Version" || fail
 
 echo -e "\n[envtester] Setting global env variable"
 
@@ -96,21 +109,21 @@ snap set "${SNAP}" env.global="World"
 
 echo "[TEST] - Check if the global env var is set for all apps"
 assert_env "${SNAP}.app-rust" "GLOBAL" "World" || fail
-assert_env "${SNAP}.app-bash" "GLOBAL" "World" || fail
+assert_env "${SNAP}.app-rust-2" "GLOBAL" "World" || fail
 
 echo -e "\n[envtester] Setting app-specific env variable"
 echo "Set env vars: specific to each app"
 snap set "${SNAP}" apps.app-rust.env.hello="Hello"
-snap set "${SNAP}" apps.app-bash.env.specific="City"
+snap set "${SNAP}" apps.app-rust-2.env.specific="City"
 
 echo "[TEST] - Check if the app-specific env var IS SET for the app 'app-rust'"
 assert_env "${SNAP}.app-rust" "HELLO" "Hello" || fail
 
-echo -e "\n[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-bash'"
-! assert_env "${SNAP}.app-bash" "HELLO" "Hello" || fail
+echo -e "\n[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-rust-2'"
+! assert_env "${SNAP}.app-rust-2" "HELLO" "Hello" || fail
 
-echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app-bash'"
-assert_env "${SNAP}.app-bash" "SPECIFIC" "City" || fail
+echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app-rust-2'"
+assert_env "${SNAP}.app-rust-2" "SPECIFIC" "City" || fail
 
 echo -e "\n[TEST] [WARN EXPECTED] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
 ! assert_env "${SNAP}.app-rust" "SPECIFIC" "City" || fail
