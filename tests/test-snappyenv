@@ -1,0 +1,113 @@
+#!/bin/bash
+
+set -eu
+
+BASEDIR=$(dirname "$(realpath "$0")")
+PROJECT_ROOT="$BASEDIR/.."
+
+. $PROJECT_ROOT/tests/initialize
+
+check_root
+clean
+init_tests
+
+echo "SNAP NAME: ${SNAP}"
+
+pushd "$PROJECT_ROOT" || exit 1
+
+# 'sudo -u "$RUN_AS"' prevents a permission denied error when using yq as snap.
+sudo -u "$SUDO_USER" yq '.apps.app-rust-2 = {
+  "environment": {
+    "env_alias": "app-rust-2"
+  },
+  "command-chain": [
+    "bin/env-exporter"
+  ],
+  "command": "bin/env.sh"
+}' -i "snap/snapcraft.yaml"
+
+unsquashfs "${PROJECT_ROOT}/${SNAP}.snap"
+
+echo "Check that the env-exporter program is present"
+[ -f squashfs-root/bin/env-exporter ] || fail
+
+echo "Check that the exec-env script is present"
+[ -f squashfs-root/bin/env.sh ] || fail
+
+echo -e "\n[envtester] Creating global envfile"
+echo 'HELLO_WORLD="Hello World"' >>"$SNAP_COMMON"/global.env
+
+echo "Load global envfile"
+snap set "${SNAP}" envfile="$SNAP_COMMON"/global.env
+
+echo "[TEST] - Check if the global envfile is loaded the app using Rust snappy-env programs"
+check_env_exist "${SNAP}.app-rust" "HELLO_WORLD" || fail
+check_env_value "${SNAP}.app-rust" "HELLO_WORLD" "Hello World" || fail
+
+check_env_exist "${SNAP}.app-rust-2" "HELLO_WORLD" || fail
+check_env_value "${SNAP}.app-rust-2" "HELLO_WORLD" "Hello World" || fail
+
+echo -e "\n[envtester] Creating app-specific envfile"
+echo 'SCOPED=RustVersion' >>"$SNAP_COMMON"/rust.env
+echo 'SCOPED=Rust2Version' >>"$SNAP_COMMON"/rust-2.env
+
+echo "Load app-specific envfile"
+snap set "${SNAP}" apps.app-rust.envfile="$SNAP_COMMON"/rust.env
+snap set "${SNAP}" apps.app-rust-2.envfile="$SNAP_COMMON"/rust-2.env
+
+echo "[TEST] - Check if the app-specific envfile is loaded for the apps"
+check_env_exist "${SNAP}.app-rust" "SCOPED" || fail
+check_env_value "${SNAP}.app-rust" "SCOPED" "RustVersion" || fail
+
+check_env_exist "${SNAP}.app-rust-2" "SCOPED" || fail
+check_env_value "${SNAP}.app-rust-2" "SCOPED" "Rust2Version" || fail
+
+echo -e "\n[envtester] Setting global env variable"
+
+echo "Set env vars: Global"
+snap set "${SNAP}" env.global="World"
+
+echo "[TEST] - Check if the global env var is set for all apps"
+check_env_exist "${SNAP}.app-rust" "GLOBAL" || fail
+check_env_value "${SNAP}.app-rust" "GLOBAL" "World" || fail
+
+check_env_exist "${SNAP}.app-rust-2" "GLOBAL" || fail
+check_env_value "${SNAP}.app-rust-2" "GLOBAL" "World" || fail
+
+echo -e "\n[envtester] Setting app-specific env variable"
+echo "Set env vars: specific to each app"
+snap set "${SNAP}" apps.app-rust.env.hello="Hello"
+snap set "${SNAP}" apps.app-rust-2.env.specific="City"
+
+echo "[TEST] - Check if the app-specific env var IS SET for the app 'app-rust'"
+check_env_exist "${SNAP}.app-rust" "HELLO" || fail
+check_env_value "${SNAP}.app-rust" "HELLO" "Hello" || fail
+
+echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app-rust-2'"
+check_env_not_exist "${SNAP}.app-rust-2" "HELLO" || fail
+
+echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app-rust-2'"
+check_env_exist "${SNAP}.app-rust-2" "SPECIFIC" || fail
+check_env_value "${SNAP}.app-rust-2" "SPECIFIC" "City" || fail
+
+echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
+check_env_not_exist "${SNAP}.app-rust" "SPECIFIC" || fail
+
+echo -e "\n[envtester] Testing order of env vars"
+echo 'ORDER="From envfile"' >>"$SNAP_COMMON"/local.env
+snap set "${SNAP}" apps.app-rust.env.order="from snap option"
+snap set "${SNAP}" apps.app-rust.envfile="$SNAP_COMMON"/local.env
+echo "[TEST] - Check if local overrides global"
+
+check_env_exist "${SNAP}.app-rust" "ORDER" || fail
+check_env_value "${SNAP}.app-rust" "ORDER" "from snap option" || fail
+
+echo -e "\n[envtester] Testing options syntax"
+snap set "${SNAP}" env.word.dot="wrong"
+echo "[TEST] - Check if the key with dot was ignored"
+check_syntax "${SNAP}.app-rust" "wrong" || fail
+snap unset "${SNAP}" env.word.dot
+
+clean
+popd || exit 1
+exit 0
