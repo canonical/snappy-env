@@ -93,19 +93,19 @@ check_env_value "${SNAP}.app-rust-2" "SPECIFIC" "City" || fail
 echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
 check_env_not_exist "${SNAP}.app-rust" "SPECIFIC" || fail
 
-echo -e "\n[envtester] Testing options syntax"
-snap set "${SNAP}" env.word.dot="wrong"
-echo "[TEST] - Check if the key with dot was ignored"
-check_syntax "${SNAP}.app-rust" "wrong" || fail
-
 echo -e "\n[envtester] Testing order of env vars"
 echo 'ORDER="From envfile"' >>"$SNAP_COMMON"/local.env
-snap set "${SNAP}" apps.app-rust.env.order="from app-specific"
+snap set "${SNAP}" apps.app-rust.env.order="from snap option"
 snap set "${SNAP}" apps.app-rust.envfile="$SNAP_COMMON"/local.env
 echo "[TEST] - Check if local overrides global"
 
 check_env_exist "${SNAP}.app-rust" "ORDER" || fail
-check_env_value "${SNAP}.app-rust" "ORDER" "from app-specific" || fail
+check_env_value "${SNAP}.app-rust" "ORDER" "from snap option" || fail
+
+echo -e "\n[envtester] Testing options syntax"
+snap set "${SNAP}" env.word.dot="wrong"
+echo "[TEST] - Check if the key with dot was ignored"
+check_syntax "${SNAP}.app-rust" "wrong" || fail
 
 clean
 popd || exit 1
