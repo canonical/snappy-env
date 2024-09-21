@@ -106,6 +106,7 @@ echo -e "\n[envtester] Testing options syntax"
 snap set "${SNAP}" env.word.dot="wrong"
 echo "[TEST] - Check if the key with dot was ignored"
 check_syntax "${SNAP}.app-rust" "wrong" || fail
+snap unset "${SNAP}" env.word.dot
 
 clean
 popd || exit 1
