@@ -13,7 +13,7 @@ apps:
     environment:
      env_alias: app-bash
     command-chain:
-      - bin/env-exporter.sh
+      - bin/snappy-env.sh
     command: bin/env.sh
 
   # App using Rust implementation
@@ -21,7 +21,7 @@ apps:
     environment:
      env_alias: app-rust
     command-chain:
-      - bin/env-exporter
+      - bin/snappy-env
     command: bin/env.sh
   
   # App without using snappy-env, for benchmarking purposes
@@ -33,17 +33,17 @@ parts:
     plugin: dump
     source: snap/local
 
-  env-exporter-bash:
+  snappy-env-bash:
     plugin: dump
-    source: env-exporter.sh
+    source: snappy-env.sh
     source-type: file
     organize:
-      env-exporter.sh: bin/env-exporter.sh
+      snappy-env.sh: bin/snappy-env.sh
 
-  env-exporter-rust:
+  snappy-env-rust:
     plugin: nil
     source: .
-    build-snaps: 
+    build-snaps:
       - rustup
     build-packages:
       - upx-ucl # for binary compression
@@ -55,8 +55,8 @@ parts:
       rustup target add $TARGET
       cargo build --target $TARGET --release
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin
-      
+
       # compress the binary
-      upx --best --lzma target/$TARGET/release/env-exporter
-      cp target/$TARGET/release/env-exporter $SNAPCRAFT_PART_INSTALL/bin
-    
+      upx --best --lzma target/$TARGET/release/snappy-env
+      cp target/$TARGET/release/snappy-env $SNAPCRAFT_PART_INSTALL/bin
+
