@@ -5,7 +5,7 @@ By adding this program to the command chain of snapped applications, it will add
 - Converting snap options to environment variables based on a custom mapping
 - Taking path to env files as input, loaded before starting the applications
 
-The program is intended to be used by the Env Injector Snapcraft extension; the documentation for that is available [here](https://forum.snapcraft.io/t/the-env-injector-extension/41477).
+The program is intended to be used by the Env Injector Snapcraft extension; the documentation for that is available [here](https://snapcraft.io/docs/env-injector).
 
 There are currently two implementations for the Snapcraft extension. The Rust implementation is considered more stable.
 
