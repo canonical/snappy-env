@@ -74,7 +74,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "http-body-util",
- "hyper 1.4.1 (git+https://github.com/hyperium/hyper?tag=v1.4.1)",
+ "hyper 1.4.1",
  "hyper-util",
  "hyperlocal",
  "serde",
@@ -188,8 +188,19 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 [[package]]
 name = "hyper"
 version = "1.4.1"
+source = "git+https://github.com/hyperium/hyper?tag=v1.4.1#4fda6b3ef7da763623797af40aa51d764be3fd2c"
+dependencies = [
+ "bytes",
+ "http",
+ "http-body",
+ "tokio",
+]
+
+[[package]]
+name = "hyper"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50dfd22e0e76d0f662d429a5f80fcaf3855009297eab6a0a9f8543834744ba05"
+checksum = "cc2b571658e38e0c01b1fdca3bbbe93c00d3d71693ff2770043f8c29bc7d6f80"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -206,28 +217,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "hyper"
-version = "1.4.1"
-source = "git+https://github.com/hyperium/hyper?tag=v1.4.1#4fda6b3ef7da763623797af40aa51d764be3fd2c"
-dependencies = [
- "bytes",
- "http",
- "http-body",
- "tokio",
-]
-
-[[package]]
 name = "hyper-util"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df2dcfbe0677734ab2f3ffa7fa7bfd4706bfdc1ef393f2ee30184aed67e631b4"
+checksum = "497bbc33a26fdd4af9ed9c70d63f61cf56a938375fbb32df34db9b1cd6d643f2"
 dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
  "http",
  "http-body",
- "hyper 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 1.6.0",
+ "libc",
  "pin-project-lite",
  "socket2",
  "tokio",
@@ -242,7 +243,7 @@ source = "git+https://github.com/softprops/hyperlocal?tag=v0.9.1#720d1c9a6f6acb3
 dependencies = [
  "hex",
  "http-body-util",
- "hyper 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 1.6.0",
  "hyper-util",
  "pin-project-lite",
  "tokio",
@@ -442,9 +443,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "socket2"
-version = "0.5.7"
+version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce305eb0b4296696835b71df73eb912e0f1ffd2556a501fcede6e0c50349191c"
+checksum = "4f5fd57c80058a56cf5c777ab8a126398ece8e442983605d280a44ce79d0edef"
 dependencies = [
  "libc",
  "windows-sys",
