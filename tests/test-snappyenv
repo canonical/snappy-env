@@ -21,15 +21,15 @@ sudo -u "$SUDO_USER" yq '.apps.app-rust-2 = {
     "env_alias": "app-rust-2"
   },
   "command-chain": [
-    "bin/env-exporter"
+    "bin/snappy-env"
   ],
   "command": "bin/env.sh"
 }' -i "snap/snapcraft.yaml"
 
 unsquashfs "${PROJECT_ROOT}/${SNAP}.snap"
 
-echo "Check that the env-exporter program is present"
-[ -f squashfs-root/bin/env-exporter ] || fail
+echo "Check that the snappy-env program is present"
+[ -f squashfs-root/bin/snappy-env ] || fail
 
 echo "Check that the exec-env script is present"
 [ -f squashfs-root/bin/env.sh ] || fail
