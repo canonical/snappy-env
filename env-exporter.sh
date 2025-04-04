@@ -18,10 +18,26 @@ debug_hash_table() {
   done
 }
 
+is_nested_json() {
+  local json_input="$1"
+  local nested_json_pattern='^\{.*\{.*\}.*\}.*$'
+
+  if [[ $json_input =~ $nested_json_pattern ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 json_to_hash_table() {
   local -n hash_table=$1
   shift
   local json_input="$@"
+
+  if is_nested_json "$json_input"; then
+    err "Nested snap options keys aren't supported: $json_input"
+    return 1
+  fi
 
   json_input=$(echo "$json_input" | sed 's/[{}]//g' | tr -d '[:space:]')
 
