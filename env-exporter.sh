@@ -33,7 +33,7 @@ is_nested_json() {
 
 catch_nested_json() {
   local json_input="$1"
-  echo "$json_input" | grep -oE '^\{.*\{.*\}.*\}.*$'
+  echo "$json_input" | grep -oE '"[^"]*"\s*:\s*\{[^}]*\}'
 }
 
 json_to_hash_table() {
