@@ -29,13 +29,19 @@ is_nested_json() {
   fi
 }
 
+catch_nested_json() {
+  local json_input="$1"
+  echo "$json_input" | grep -oE '"[^"]*"\s*:\s*\{[^}]*\}'
+}
+
 json_to_hash_table() {
   local -n hash_table=$1
   shift
   local json_input="$@"
 
   if is_nested_json "$json_input"; then
-    err "Nested snap options keys aren't supported: $json_input"
+    local nested=$(catch_nested_json $json_input)
+    err "Nested snap options keys aren't supported: $nested"
     return 1
   fi
 
