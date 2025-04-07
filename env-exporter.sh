@@ -42,7 +42,7 @@ json_to_hash_table() {
   local json_input="$@"
 
   if is_nested_json "$json_input"; then
-    local nested=$(catch_nested_json $json_input)
+    local nested=$(catch_nested_json "$json_input")
     err "Nested snap options keys aren't supported: $nested"
     return 1
   fi
