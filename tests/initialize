@@ -1,5 +1,27 @@
 #!/bin/bash
 
+help() {
+  cat <<EOF
+Usage: $0 -i <impl>
+       $0 --impl=<impl>
+
+Options:
+  -i, --impl <impl>        Specify the implementation of the env-exporter program.
+                           Must be either 'bash' or 'rust'.
+
+Examples:
+  $0 -i bash
+  $0 --impl=rust
+
+Description:
+  The 'impl' option selects which implementation of the env-exporter program to use.
+  - 'bash': Uses the Bash-based implementation.
+  - 'rust': Uses the Rust-based implementation.
+
+EOF
+  exit 1
+}
+
 check_syntax() {
   local snap_app="$1"
   local env_value="$2"
