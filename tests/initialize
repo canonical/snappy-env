@@ -129,7 +129,13 @@ inject_test_app() {
 
 init_tests() {
   set +u
-  inject_test_app
+
+  if [[ -z "${impl}" ]]; then
+    echo "Error: first run the initialize script"
+    help
+  fi
+
+  inject_test_app "${impl_map[$impl]}"
   if [ -z "${GITHUB_ACTIONS}" ]; then
     set -u
     snapcraft -o "${SNAP}".snap
