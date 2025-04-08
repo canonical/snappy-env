@@ -18,7 +18,7 @@ pushd "$PROJECT_ROOT" || exit 1
 unsquashfs "${PROJECT_ROOT}/${SNAP}.snap"
 
 echo "Check that the env-exporter program is present"
-[ -f squashfs-root/bin/env-exporter ] || fail
+[ -f squashfs-root/bin/env-exporter ] || [ -f squashfs-root/bin/env-exporter.sh ] || fail
 
 echo "Check that the exec-env script is present"
 [ -f squashfs-root/bin/env.sh ] || fail
@@ -29,7 +29,7 @@ echo 'HELLO_WORLD="Hello World"' >>"$SNAP_COMMON"/global.env
 echo "Load global envfile"
 snap set "${SNAP}" envfile="$SNAP_COMMON"/global.env
 
-echo "[TEST] - Check if the global envfile is loaded the app using Rust snappy-env programs"
+echo "[TEST] - Check if the global envfile is loaded the app using snappy-env programs"
 check_env_exist "${SNAP}.app1" "HELLO_WORLD" || fail
 check_env_value "${SNAP}.app1" "HELLO_WORLD" "Hello World" || fail
 
@@ -37,8 +37,8 @@ check_env_exist "${SNAP}.app2" "HELLO_WORLD" || fail
 check_env_value "${SNAP}.app2" "HELLO_WORLD" "Hello World" || fail
 
 echo -e "\n[envtester] Creating app-specific envfile"
-echo 'SCOPED=RustVersion' >>"$SNAP_COMMON"/envs.env
-echo 'SCOPED=Rust2Version' >>"$SNAP_COMMON"/envs2.env
+echo 'SCOPED=AppVersion' >>"$SNAP_COMMON"/envs.env
+echo 'SCOPED=App2Version' >>"$SNAP_COMMON"/envs2.env
 
 echo "Load app-specific envfile"
 snap set "${SNAP}" apps.app1.envfile="$SNAP_COMMON"/envs.env
@@ -46,10 +46,10 @@ snap set "${SNAP}" apps.app2.envfile="$SNAP_COMMON"/envs2.env
 
 echo "[TEST] - Check if the app-specific envfile is loaded for the apps"
 check_env_exist "${SNAP}.app1" "SCOPED" || fail
-check_env_value "${SNAP}.app1" "SCOPED" "RustVersion" || fail
+check_env_value "${SNAP}.app1" "SCOPED" "AppVersion" || fail
 
 check_env_exist "${SNAP}.app2" "SCOPED" || fail
-check_env_value "${SNAP}.app2" "SCOPED" "Rust2Version" || fail
+check_env_value "${SNAP}.app2" "SCOPED" "App2Version" || fail
 
 echo -e "\n[envtester] Setting global env variable"
 
