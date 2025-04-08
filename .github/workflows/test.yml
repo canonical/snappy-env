@@ -13,6 +13,10 @@ env:
 
 jobs:
   build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        implementation: [bash, rust]
     outputs:
       snap: ${{ steps.snapcraft.outputs.snap }}
     runs-on: ubuntu-latest
@@ -20,8 +24,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Implementation
+        run: "echo ::notice::env-exporter implementation: ${{ matrix.implementation }}"
+
       - name: Initialize tests
-        run: sudo ./tests/initialize 
+        run: sudo ./tests/initialize -i ${{ matrix.implementation }}
 
       - name: Build snap
         uses: snapcore/action-build@v1
