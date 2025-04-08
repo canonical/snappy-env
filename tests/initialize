@@ -73,15 +73,36 @@ fail() {
 
 inject_test_app() {
   sudo snap install yq
-  sudo -u "$SUDO_USER" yq '.apps.app-rust-2 = {
+
+  if [[ -z "${impl_map[$1]}" ]]; then
+    echo "Error: unknown implementation '$1'"
+    help
+  fi
+
+  local exporter="${impl_map[$1]}"
+
+  # Create app1
+  sudo -u "$SUDO_USER" yq '.apps.app1 = {
   "environment": {
-    "env_alias": "app-rust-2"
+    "env_alias": "app1"
   },
   "command-chain": [
-    "bin/env-exporter"
+    "bin/$exporter"
   ],
   "command": "bin/env.sh"
   }' -i "snap/snapcraft.yaml"
+
+  # Create app2
+  sudo -u "$SUDO_USER" yq '.apps.app2 = {
+  "environment": {
+    "env_alias": "app2"
+  },
+  "command-chain": [
+    "bin/$exporter"
+  ],
+  "command": "bin/env.sh"
+  }' -i "snap/snapcraft.yaml"
+
 }
 
 init_tests() {
