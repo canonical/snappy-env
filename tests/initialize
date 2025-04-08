@@ -118,4 +118,33 @@ init_tests() {
 SNAP=envtester
 SNAP_COMMON=/var/snap/"${SNAP}"/common/
 
-inject_test_app
+impl=""
+
+declare -A impl_map=(
+  [bash]="env-exporter.sh"
+  [rust]="env-exporter"
+)
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -i=* | --impl=*)
+    impl="${1#*=}"
+    shift
+    ;;
+  -i | --impl)
+    impl="$2"
+    shift 2
+    ;;
+  *)
+    help
+    ;;
+  esac
+done
+
+if [[ "$impl" != "bash" && "$impl" != "rust" ]]; then
+  echo "Error: --impl/-i must be either 'bash' or 'rust'" >&2
+  help
+fi
+
+inject_test_app "${impl_map[$impl]}"
+
