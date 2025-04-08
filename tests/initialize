@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 help() {
   cat <<EOF
 Usage: $0 -i <impl>
@@ -174,4 +176,3 @@ if [[ "$impl" != "bash" && "$impl" != "rust" ]]; then
 fi
 
 inject_test_app "${impl_map[$impl]}"
-

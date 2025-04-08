@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 BASEDIR=$(dirname "$(realpath "$0")")
 PROJECT_ROOT="$BASEDIR/.."
