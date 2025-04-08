@@ -37,9 +37,9 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: envtester_${{ github.run_id}}_${{matrix.implementation}}.snap
+          name: envtester_${{ github.run_id }}_${{ matrix.implementation }}.snap
           path: ${{ steps.snapcraft.outputs.snap }}
           if-no-files-found: error
 
       - name: Run tests
-        run: sudo ./tests/test-snappyenv
+        run: sudo ./tests/test-snappyenv ${{ matrix.implementation }}

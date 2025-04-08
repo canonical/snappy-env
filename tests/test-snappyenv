@@ -7,6 +7,9 @@ PROJECT_ROOT="$BASEDIR/.."
 
 . $PROJECT_ROOT/tests/initialize
 
+impl=$1
+check_impl
+
 check_root
 clean
 init_tests
