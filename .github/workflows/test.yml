@@ -8,9 +8,6 @@ on:
   # Allow manual trigger
   workflow_dispatch:
 
-env:
-  SNAP: envtester_${{ github.run_id}}.snap
-
 jobs:
   build-and-test:
     strategy:
@@ -40,7 +37,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.SNAP }}
+          name: envtester_${{ github.run_id}}_${{matrix.implementation}}.snap
           path: ${{ steps.snapcraft.outputs.snap }}
           if-no-files-found: error
 
