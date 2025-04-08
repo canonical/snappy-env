@@ -15,17 +15,6 @@ echo "SNAP NAME: ${SNAP}"
 
 pushd "$PROJECT_ROOT" || exit 1
 
-# 'sudo -u "$RUN_AS"' prevents a permission denied error when using yq as snap.
-sudo -u "$SUDO_USER" yq '.apps.app2 = {
-  "environment": {
-    "env_alias": "app2"
-  },
-  "command-chain": [
-    "bin/env-exporter"
-  ],
-  "command": "bin/env.sh"
-}' -i "snap/snapcraft.yaml"
-
 unsquashfs "${PROJECT_ROOT}/${SNAP}.snap"
 
 echo "Check that the env-exporter program is present"
