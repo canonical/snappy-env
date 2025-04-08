@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 debug() {
   [ "$DEBUG" != "true" ] && return
   echo -e "[DEBUG] $1"
