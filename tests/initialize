@@ -129,9 +129,9 @@ inject_test_app() {
 
 init_tests() {
   set +u
+  inject_test_app
   if [ -z "${GITHUB_ACTIONS}" ]; then
     set -u
-    inject_test_app
     snapcraft -o "${SNAP}".snap
     snap install "${SNAP}".snap --dangerous
   fi
@@ -139,7 +139,6 @@ init_tests() {
 
 SNAP=envtester
 SNAP_COMMON=/var/snap/"${SNAP}"/common/
-
 impl=""
 
 declare -A impl_map=(
