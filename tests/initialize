@@ -106,26 +106,26 @@ inject_test_app() {
   local exporter="${impl_map[$1]}"
 
   # Create app1
-  sudo -u "$SUDO_USER" yq '.apps.app1 = {
-  "environment": {
-    "env_alias": "app1"
-  },
-  "command-chain": [
-    "bin/$exporter"
-  ],
-  "command": "bin/env.sh"
-  }' -i "snap/snapcraft.yaml"
+  sudo -u "$SUDO_USER" yq ".apps.app1 = {
+    \"environment\": {
+      \"env_alias\": \"app1\"
+    },
+    \"command-chain\": [
+      \"bin/${exporter}\"
+    ],
+    \"command\": \"bin/env.sh\"
+  }" -i "snap/snapcraft.yaml"
 
   # Create app2
-  sudo -u "$SUDO_USER" yq '.apps.app2 = {
-  "environment": {
-    "env_alias": "app2"
-  },
-  "command-chain": [
-    "bin/$exporter"
-  ],
-  "command": "bin/env.sh"
-  }' -i "snap/snapcraft.yaml"
+  sudo -u "$SUDO_USER" yq ".apps.app2 = {
+    \"environment\": {
+      \"env_alias\": \"app2\"
+    },
+    \"command-chain\": [
+      \"bin/${exporter}\"
+    ],
+    \"command\": \"bin/env.sh\"
+  }" -i "snap/snapcraft.yaml"
 
 }
 
