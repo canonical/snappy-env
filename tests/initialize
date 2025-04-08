@@ -175,4 +175,4 @@ if [[ "$impl" != "bash" && "$impl" != "rust" ]]; then
   help
 fi
 
-inject_test_app "${impl_map[$impl]}"
+inject_test_app "$impl"
