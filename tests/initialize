@@ -137,7 +137,6 @@ init_tests() {
     help
   fi
 
-  inject_test_app "${impl_map[$impl]}"
   if [ -z "${GITHUB_ACTIONS}" ]; then
     set -u
     snapcraft -o "${SNAP}".snap
