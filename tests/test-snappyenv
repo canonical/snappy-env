@@ -5,13 +5,9 @@ set -eux
 BASEDIR=$(dirname "$(realpath "$0")")
 PROJECT_ROOT="$BASEDIR/.."
 
-. $PROJECT_ROOT/tests/initialize
-
-impl=$1
-check_impl
+. $PROJECT_ROOT/tests/common
 
 check_root
-clean
 init_tests
 
 echo "SNAP NAME: ${SNAP}"
