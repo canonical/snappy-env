@@ -42,4 +42,4 @@ jobs:
           if-no-files-found: error
 
       - name: Run tests
-        run: sudo ./tests/test-snappyenv ${{ matrix.implementation }}
+        run: sudo ./tests/test-snappyenv
