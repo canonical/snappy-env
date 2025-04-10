@@ -42,7 +42,6 @@ json_to_hash_table() {
   if is_nested_json "$json_input"; then
     local nested=$(catch_nested_json "$json_input")
     err "Nested snap options keys aren't supported: $nested"
-    exit 1
   fi
 
   json_input=$(echo "$json_input" | sed 's/[{}]//g' | tr -d '[:space:]')
