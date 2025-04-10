@@ -28,10 +28,13 @@ strip_nested_json_keys() {
   local len=${#body} # count of characters in body
   local depth=0 # depth tracks how many object braces are open
   local buf=""
-  local segments=()
+  local segments=() # array to hold segments (key:value pairs)
 
+  # Segmentation loop:
+  # iterate through each character in the body
+  # and build segments from the top level of the JSON object
   for ((i=0; i<len; i++)); do
-    local c="${body:i:1}"
+    local c="${body:i:1}" # get one character
     case "$c" in
       '{') depth=$((depth+1)); buf+="$c" ;;
       '}') depth=$((depth-1)); buf+="$c" ;;
@@ -51,7 +54,8 @@ strip_nested_json_keys() {
   # add last buffer
   [[ -n "$buf" ]] && segments+=("$buf")
 
-  # Filter: keep only those segments whose value does NOT start with { or [
+  # Filter loop:
+  # keep only those segments whose value does NOT start with { or [
   local out_segs=()
   for seg in "${segments[@]}"; do
     # trim leading/trailing whitespace
@@ -66,6 +70,7 @@ strip_nested_json_keys() {
     fi
   done
 
+  # Reconstruction loop:
   # Reconstruct an inline JSON object
   local out="{"
   local sep=""
