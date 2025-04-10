@@ -18,6 +18,84 @@ debug_hash_table() {
   done
 }
 
+strip_nested_json_keys() {
+  local json="$1"
+
+  # echo -e "received json:\n$json"
+
+  # Pull out the contents between the outermost braces
+  local body="${json#*\{}"
+  body="${body%\}*}"
+
+  # echo -e "body:\n$body"
+
+  local len=${#body} # count of characters in body
+  local depth=0 # depth tracks how many object braces are open
+  local buf=""
+  local segments=()
+
+  # echo "len: $len"
+
+  for ((i=0; i<len; i++)); do
+    local c="${body:i:1}"
+    # echo "character: '$c'"
+
+    case "$c" in
+      '{') 
+        depth=$((depth+1));
+        buf+="$c";
+        # echo "depth: $depth";
+        # echo "buf: $buf"
+        ;;
+      '}') 
+        depth=$((depth-1));
+        buf+="$c";
+        # echo "depth: $depth";
+        # echo "buf: $buf"
+        ;;
+      ',')
+        # If depth is 0, then we have a top-level segment
+        if (( depth == 0 )); then
+          segments+=("$buf")
+          buf=""
+        else
+          buf+="$c"
+        fi
+        ;;
+      *) buf+="$c" ;;
+    esac
+
+  done
+  # add last buffer
+  [[ -n "$buf" ]] && segments+=("$buf")
+
+  # Filter: keep only those segments whose value does NOT start with { or [
+  local out_segs=()
+  for seg in "${segments[@]}"; do
+    # trim leading/trailing whitespace
+    seg="${seg#"${seg%%[![:space:]]*}"}"
+    seg="${seg%"${seg##*[![:space:]]}"}"
+    # split at first colon
+    local val="${seg#*:}"
+    val="${val#"${val%%[![:space:]]*}"}"
+    # if value doesn't begin with { or [, keep it
+    if [[ ! "$val" =~ ^[\{\[] ]]; then
+      out_segs+=("$seg")
+    fi
+  done
+
+  # Reconstruct a JSON object
+  local out="{"
+  local sep=""
+  for seg in "${out_segs[@]}"; do
+    out+="${sep}${seg}"
+    sep=", "
+  done
+  out+="}"
+
+  echo "$out"
+}
+
 is_nested_json() {
   local json_input="$1"
   local nested_json_pattern='^\{.*\{.*\}.*\}.*$'
@@ -42,6 +120,7 @@ json_to_hash_table() {
   if is_nested_json "$json_input"; then
     local nested=$(catch_nested_json "$json_input")
     err "Nested snap options keys aren't supported: $nested"
+    json_input=$(strip_nested_json_keys "$json_input")
   fi
 
   json_input=$(echo "$json_input" | sed 's/[{}]//g' | tr -d '[:space:]')
@@ -157,3 +236,4 @@ main() {
 main $1
 
 exec "$@"
+
