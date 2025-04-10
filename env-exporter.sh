@@ -21,38 +21,20 @@ debug_hash_table() {
 strip_nested_json_keys() {
   local json="$1"
 
-  # echo -e "received json:\n$json"
-
   # Pull out the contents between the outermost braces
   local body="${json#*\{}"
   body="${body%\}*}"
-
-  # echo -e "body:\n$body"
 
   local len=${#body} # count of characters in body
   local depth=0 # depth tracks how many object braces are open
   local buf=""
   local segments=()
 
-  # echo "len: $len"
-
   for ((i=0; i<len; i++)); do
     local c="${body:i:1}"
-    # echo "character: '$c'"
-
     case "$c" in
-      '{') 
-        depth=$((depth+1));
-        buf+="$c";
-        # echo "depth: $depth";
-        # echo "buf: $buf"
-        ;;
-      '}') 
-        depth=$((depth-1));
-        buf+="$c";
-        # echo "depth: $depth";
-        # echo "buf: $buf"
-        ;;
+      '{') depth=$((depth+1)); buf+="$c" ;;
+      '}') depth=$((depth-1)); buf+="$c" ;;
       ',')
         # If depth is 0, then we have a top-level segment
         if (( depth == 0 )); then
@@ -84,7 +66,7 @@ strip_nested_json_keys() {
     fi
   done
 
-  # Reconstruct a JSON object
+  # Reconstruct an inline JSON object
   local out="{"
   local sep=""
   for seg in "${out_segs[@]}"; do
