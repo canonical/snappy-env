@@ -29,12 +29,29 @@ strip_nested_json_keys() {
   local depth=0 # depth tracks how many object braces are open
   local buf=""
   local segments=() # array to hold segments (key:value pairs)
+  local inquotation=0 # flag to track if we are inside a string
 
   # Segmentation loop:
   # iterate through each character in the body
   # and build segments from the top level of the JSON object
   for ((i=0; i<len; i++)); do
     local c="${body:i:1}" # get one character
+
+    # If we encounter a quotation mark, toggle the inquotation flag
+    if [[ "$c" == '"' ]]; then
+      if (( inquotation == 0)); then
+        inquotation=1
+      else 
+        inquotation=0
+      fi
+    fi
+
+    # If inside quotations, just add the character to the buffer and continue
+    if (( inquotation == 1 )); then
+      buf+="$c"
+      continue
+    fi
+
     case "$c" in
       '{') depth=$((depth+1)); buf+="$c" ;;
       '}') depth=$((depth-1)); buf+="$c" ;;
