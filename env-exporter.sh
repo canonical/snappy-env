@@ -121,6 +121,8 @@ json_to_hash_table() {
   shift
   local json_input="$@"
 
+  # Detect and drop nested JSON objects
+  # See https://github.com/canonical/snappy-env/issues/7
   if is_nested_json "$json_input"; then
     local nested=$(catch_nested_json "$json_input")
     err "Nested snap options keys aren't supported:\n$nested"
