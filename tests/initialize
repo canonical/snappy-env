@@ -1,100 +1,53 @@
 #!/bin/bash
 
-check_syntax() {
-  local snap_app="$1"
-  local env_value="$2"
-  if eval "$snap_app" | grep -q "^${env_value}="; then
-    echo -e "\n[ERROR] Value '$env_name' SHOULD NOT BE set.\n"
-    return 1
-  fi
-  return 0
-}
+set -x
 
-check_env_exist() {
-  local snap_app="$1"
-  local env_name="$2"
+BASEDIR=$(dirname "$(realpath "$0")")
+PROJECT_ROOT="$BASEDIR/.."
 
-  if ! eval "$snap_app" | grep -q "^${env_name}="; then
-    echo -e "\n[ERROR] Environment variable '$env_name' is not set, for the app: $snap_app.\n"
-    return 1
-  fi
-}
+. $PROJECT_ROOT/tests/common
 
-check_env_not_exist() {
+help() {
+  cat <<EOF
+Usage: $0 -i <impl>
+       $0 --impl=<impl>
 
-  local snap_app="$1"
-  local env_name="$2"
+Options:
+  -i, --impl <impl>        Specify the implementation of the env-exporter program.
+                           Must be either 'bash' or 'rust'.
 
-  if eval "$snap_app" | grep -q "^${env_name}="; then
-    echo -e "\n[ERROR] Environment variable '$env_name' SHOULD NOT be set, for the app: $snap_app.\n"
-    return 1
-  fi
-}
+Examples:
+  $0 -i bash
+  $0 --impl=rust
 
-check_env_value() {
-  local snap_app="$1"
-  local env_name="$2"
-  local exp_value="$3"
-  local actual_value
+Description:
+  The 'impl' option selects which implementation of the env-exporter program to use.
+  - 'bash': Uses the Bash-based implementation.
+  - 'rust': Uses the Rust-based implementation.
 
-  if [ -z "$env_name" ]; then
-    echo -e "\n\nHERE HERE\n\n "
-    empty=$("$snap_app" | grep "=${exp_value}")
-    [ -z "$empty" ] || return 1
-  fi
-  actual_value=$("$snap_app" | grep "^${env_name}=" | cut -d'=' -f2-)
-  if [ "$actual_value" != "$exp_value" ]; then
-    echo -e "\n[ERROR] Environment variable '$env_name' does not match the expected value, for the app: $snap_app"
-    echo -e "[ERROR] Expected: '$env_name=$exp_value', but got: '$env_name=$actual_value'\n"
-    return 1
-  fi
-}
-
-check_root() {
-  if [ "$USER" != "root" ]; then
-    echo -e "Please run as root.\n"
-    exit 1
-  fi
-}
-
-clean() {
-  echo "Cleaning..."
-  snap remove --purge "${SNAP}"
-  git restore snap/snapcraft.yaml
-  sudo chown $SUDO_USER:$SUDO_USER snap/snapcraft.yaml
-
-  rm -rf squashfs-root
-}
-
-fail() {
-  clean
+EOF
   exit 1
 }
 
-inject_test_app() {
-  sudo snap install yq
-  sudo -u "$SUDO_USER" yq '.apps.app-rust-2 = {
-  "environment": {
-    "env_alias": "app-rust-2"
-  },
-  "command-chain": [
-    "bin/env-exporter"
-  ],
-  "command": "bin/env.sh"
-  }' -i "snap/snapcraft.yaml"
-}
 
-init_tests() {
-  set +u
-  if [ -z "${GITHUB_ACTIONS}" ]; then
-    set -u
-    inject_test_app
-    snapcraft -o "${SNAP}".snap
-    snap install "${SNAP}".snap --dangerous
-  fi
-}
+impl=""
 
-SNAP=envtester
-SNAP_COMMON=/var/snap/"${SNAP}"/common/
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -i=* | --impl=*)
+    impl="${1#*=}"
+    shift
+    ;;
+  -i | --impl)
+    impl="$2"
+    shift 2
+    ;;
+  *)
+    help
+    ;;
+  esac
+done
 
-inject_test_app
+check_impl "$impl"
+
+inject_test_app "$impl"
