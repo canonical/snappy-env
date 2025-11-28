@@ -1,35 +1,23 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 BASEDIR=$(dirname "$(realpath "$0")")
 PROJECT_ROOT="$BASEDIR/.."
 
-. $PROJECT_ROOT/tests/initialize
+. $PROJECT_ROOT/tests/common
 
 check_root
-clean
 init_tests
 
 echo "SNAP NAME: ${SNAP}"
 
 pushd "$PROJECT_ROOT" || exit 1
 
-# 'sudo -u "$RUN_AS"' prevents a permission denied error when using yq as snap.
-sudo -u "$SUDO_USER" yq '.apps.app-rust-2 = {
-  "environment": {
-    "env_alias": "app-rust-2"
-  },
-  "command-chain": [
-    "bin/env-exporter"
-  ],
-  "command": "bin/env.sh"
-}' -i "snap/snapcraft.yaml"
-
 unsquashfs "${PROJECT_ROOT}/${SNAP}.snap"
 
 echo "Check that the env-exporter program is present"
-[ -f squashfs-root/bin/env-exporter ] || fail
+[ -f squashfs-root/bin/env-exporter ] || [ -f squashfs-root/bin/env-exporter.sh ] || fail
 
 echo "Check that the exec-env script is present"
 [ -f squashfs-root/bin/env.sh ] || fail
@@ -40,27 +28,27 @@ echo 'HELLO_WORLD="Hello World"' >>"$SNAP_COMMON"/global.env
 echo "Load global envfile"
 snap set "${SNAP}" envfile="$SNAP_COMMON"/global.env
 
-echo "[TEST] - Check if the global envfile is loaded the app using Rust snappy-env programs"
-check_env_exist "${SNAP}.app-rust" "HELLO_WORLD" || fail
-check_env_value "${SNAP}.app-rust" "HELLO_WORLD" "Hello World" || fail
+echo "[TEST] - Check if the global envfile is loaded the app using snappy-env programs"
+check_env_exist "${SNAP}.app1" "HELLO_WORLD" || fail
+check_env_value "${SNAP}.app1" "HELLO_WORLD" "Hello World" || fail
 
-check_env_exist "${SNAP}.app-rust-2" "HELLO_WORLD" || fail
-check_env_value "${SNAP}.app-rust-2" "HELLO_WORLD" "Hello World" || fail
+check_env_exist "${SNAP}.app2" "HELLO_WORLD" || fail
+check_env_value "${SNAP}.app2" "HELLO_WORLD" "Hello World" || fail
 
 echo -e "\n[envtester] Creating app-specific envfile"
-echo 'SCOPED=RustVersion' >>"$SNAP_COMMON"/rust.env
-echo 'SCOPED=Rust2Version' >>"$SNAP_COMMON"/rust-2.env
+echo 'SCOPED=AppVersion' >>"$SNAP_COMMON"/envs.env
+echo 'SCOPED=App2Version' >>"$SNAP_COMMON"/envs2.env
 
 echo "Load app-specific envfile"
-snap set "${SNAP}" apps.app-rust.envfile="$SNAP_COMMON"/rust.env
-snap set "${SNAP}" apps.app-rust-2.envfile="$SNAP_COMMON"/rust-2.env
+snap set "${SNAP}" apps.app1.envfile="$SNAP_COMMON"/envs.env
+snap set "${SNAP}" apps.app2.envfile="$SNAP_COMMON"/envs2.env
 
 echo "[TEST] - Check if the app-specific envfile is loaded for the apps"
-check_env_exist "${SNAP}.app-rust" "SCOPED" || fail
-check_env_value "${SNAP}.app-rust" "SCOPED" "RustVersion" || fail
+check_env_exist "${SNAP}.app1" "SCOPED" || fail
+check_env_value "${SNAP}.app1" "SCOPED" "AppVersion" || fail
 
-check_env_exist "${SNAP}.app-rust-2" "SCOPED" || fail
-check_env_value "${SNAP}.app-rust-2" "SCOPED" "Rust2Version" || fail
+check_env_exist "${SNAP}.app2" "SCOPED" || fail
+check_env_value "${SNAP}.app2" "SCOPED" "App2Version" || fail
 
 echo -e "\n[envtester] Setting global env variable"
 
@@ -68,44 +56,44 @@ echo "Set env vars: Global"
 snap set "${SNAP}" env.global="World"
 
 echo "[TEST] - Check if the global env var is set for all apps"
-check_env_exist "${SNAP}.app-rust" "GLOBAL" || fail
-check_env_value "${SNAP}.app-rust" "GLOBAL" "World" || fail
+check_env_exist "${SNAP}.app1" "GLOBAL" || fail
+check_env_value "${SNAP}.app1" "GLOBAL" "World" || fail
 
-check_env_exist "${SNAP}.app-rust-2" "GLOBAL" || fail
-check_env_value "${SNAP}.app-rust-2" "GLOBAL" "World" || fail
+check_env_exist "${SNAP}.app2" "GLOBAL" || fail
+check_env_value "${SNAP}.app2" "GLOBAL" "World" || fail
 
 echo -e "\n[envtester] Setting app-specific env variable"
 echo "Set env vars: specific to each app"
-snap set "${SNAP}" apps.app-rust.env.hello="Hello"
-snap set "${SNAP}" apps.app-rust-2.env.specific="City"
+snap set "${SNAP}" apps.app1.env.hello="Hello"
+snap set "${SNAP}" apps.app2.env.specific="City"
 
-echo "[TEST] - Check if the app-specific env var IS SET for the app 'app-rust'"
-check_env_exist "${SNAP}.app-rust" "HELLO" || fail
-check_env_value "${SNAP}.app-rust" "HELLO" "Hello" || fail
+echo "[TEST] - Check if the app-specific env var IS SET for the app 'app1'"
+check_env_exist "${SNAP}.app1" "HELLO" || fail
+check_env_value "${SNAP}.app1" "HELLO" "Hello" || fail
 
-echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app-rust-2'"
-check_env_not_exist "${SNAP}.app-rust-2" "HELLO" || fail
+echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app2'"
+check_env_not_exist "${SNAP}.app2" "HELLO" || fail
 
-echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app-rust-2'"
-check_env_exist "${SNAP}.app-rust-2" "SPECIFIC" || fail
-check_env_value "${SNAP}.app-rust-2" "SPECIFIC" "City" || fail
+echo -e "\n[TEST] - Check if the app-specific env var IS SET for the app 'app2'"
+check_env_exist "${SNAP}.app2" "SPECIFIC" || fail
+check_env_value "${SNAP}.app2" "SPECIFIC" "City" || fail
 
-echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app-rust'"
-check_env_not_exist "${SNAP}.app-rust" "SPECIFIC" || fail
+echo -e "\n[TEST] - Check if the app-specific env var IS NOT SET for the app 'app1'"
+check_env_not_exist "${SNAP}.app1" "SPECIFIC" || fail
 
 echo -e "\n[envtester] Testing order of env vars"
 echo 'ORDER="From envfile"' >>"$SNAP_COMMON"/local.env
-snap set "${SNAP}" apps.app-rust.env.order="from snap option"
-snap set "${SNAP}" apps.app-rust.envfile="$SNAP_COMMON"/local.env
+snap set "${SNAP}" apps.app1.env.order="from snap option"
+snap set "${SNAP}" apps.app1.envfile="$SNAP_COMMON"/local.env
 echo "[TEST] - Check if local overrides global"
 
-check_env_exist "${SNAP}.app-rust" "ORDER" || fail
-check_env_value "${SNAP}.app-rust" "ORDER" "from snap option" || fail
+check_env_exist "${SNAP}.app1" "ORDER" || fail
+check_env_value "${SNAP}.app1" "ORDER" "from snap option" || fail
 
 echo -e "\n[envtester] Testing options syntax"
 snap set "${SNAP}" env.word.dot="wrong"
 echo "[TEST] - Check if the key with dot was ignored"
-check_syntax "${SNAP}.app-rust" "wrong" || fail
+check_syntax "${SNAP}.app1" "wrong" || fail
 snap unset "${SNAP}" env.word.dot
 
 clean
