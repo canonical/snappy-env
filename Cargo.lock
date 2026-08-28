@@ -74,7 +74,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "http-body-util",
- "hyper 1.4.1 (git+https://github.com/hyperium/hyper?tag=v1.4.1)",
+ "hyper 1.11.1",
  "hyper-util",
  "hyperlocal",
  "serde",
@@ -207,8 +207,8 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "1.4.1"
-source = "git+https://github.com/hyperium/hyper?tag=v1.4.1#4fda6b3ef7da763623797af40aa51d764be3fd2c"
+version = "1.11.1"
+source = "git+https://github.com/hyperium/hyper?tag=v1.11.1#6371cd425017155f7fbecef0e57b218edbe6a93a"
 dependencies = [
  "bytes",
  "http",
@@ -227,7 +227,7 @@ dependencies = [
  "futures-util",
  "http",
  "http-body",
- "hyper 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 1.4.1",
  "pin-project-lite",
  "socket2",
  "tokio",
@@ -242,7 +242,7 @@ source = "git+https://github.com/softprops/hyperlocal?tag=v0.9.1#720d1c9a6f6acb3
 dependencies = [
  "hex",
  "http-body-util",
- "hyper 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 1.4.1",
  "hyper-util",
  "pin-project-lite",
  "tokio",
